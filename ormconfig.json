@@ -1,0 +1,10 @@
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "root",
+  "password": "01055646565",
+  "database": "iot",
+  "entities": ["dist/**/*.entity{.ts,.js}"],
+  "synchronize": true
+}
