@@ -5,9 +5,13 @@ export const getPresentDatetime = function (): string {
 };
 
 export const getSectionInTopic = function (topic: string): string {
-  return topic.split('/')[2];
+  return topic.split('/')[1];
 };
 
 export const getMachineInTopic = (topic: string): string => {
-  return topic.split('/')[1];
+  return topic.split('/')[2];
+};
+
+export const getEnvironmentSectionInTopic = function (topic: string): string {
+  return topic.split('/')[2];
 };

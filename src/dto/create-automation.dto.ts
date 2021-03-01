@@ -18,12 +18,6 @@ export class CreateAutomationDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(30)
-  readonly controlledBy: string;
-
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(30)
   readonly machine: string;
 
   @Expose()
@@ -42,4 +36,10 @@ export class CreateAutomationDto {
   @IsBoolean()
   @IsNotEmpty()
   readonly enable: boolean;
+
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(30)
+  readonly automationType: string;
 }

@@ -52,9 +52,8 @@ export class SchedulesService {
     scheduleReadDto: ReadScheduleDto,
   ): Promise<ResponseSchedulesDto> {
     const dateFormat: string = getDateFormat(scheduleReadDto.date);
-    const formattedDate: string = moment(new Date(scheduleReadDto.date)).format(
-      dateFormat,
-    );
+    const formattedDate: string = moment(new Date(scheduleReadDto.date)).format(dateFormat);
+
     const schedules: SelectedDateSchedule[] = await this.schedulesRepository
       .createQueryBuilder('schedule')
       .select([
@@ -62,6 +61,7 @@ export class SchedulesService {
         'schedule.date',
         'schedule.title',
         'schedule.content',
+        'schedule.binding',
       ])
       .where('schedule.date LIKE :date', { date: `%${formattedDate}%` })
       .orderBy('schedule.date', 'DESC')

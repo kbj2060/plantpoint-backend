@@ -1,4 +1,5 @@
 import {
+  AfterLoad,
   Column,
   CreateDateColumn,
   Entity,
@@ -7,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { IsNotEmpty } from 'class-validator';
-import { Machine } from './machine.entity';
 import { EnvironmentSection } from './environment_section.entity';
+
 
 @Entity()
 export class Environment {

@@ -5,6 +5,7 @@ export interface SelectedDateSchedule {
   date: string;
   title: string;
   content: string;
+  binding: number;
 }
 
 export interface ScheduleUpdate {

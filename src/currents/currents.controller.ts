@@ -1,4 +1,4 @@
-import { Body, Controller, Get } from '@nestjs/common';
+import {Body, Controller, Get, Param} from '@nestjs/common';
 import { CreateCurrentDto } from '../dto/create-current.dto';
 import { CurrentsService } from './currents.service';
 import {
@@ -16,11 +16,16 @@ import { ResponseLastCurrentDto } from '../dto/response-last-current.dto';
 export class CurrentsController {
   constructor(readonly currentsService: CurrentsService) {}
 
-  @Get('/read')
+  @Get('/read/:machineSection/:machine')
   readCurrent(
-    @Body() currentFindDto: ReadCurrentDto,
+    @Param('machine') machine: string,
+    @Param('machineSection') machineSection: string,
   ): Promise<ResponseLastCurrentDto> {
-    return this.currentsService.readCurrent(currentFindDto);
+    const currentReadDto: ReadCurrentDto = {
+      machine: machine,
+      machineSection: machineSection,
+    }
+    return this.currentsService.readCurrent(currentReadDto);
   }
 
   @MessagePattern('current/+/+')

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {Body, Controller, Get, Param, Post} from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { ReadScheduleDto } from '../dto/read-schedule.dto';
 import { UpdateScheduleDto } from '../dto/update-shedule.dto';
@@ -10,10 +10,11 @@ import { ResponseSchedulesDto } from '../dto/response-schedules.dto';
 export class SchedulesController {
   constructor(readonly schedulesService: SchedulesService) {}
 
-  @Get('/read')
+  @Get('/read/:date')
   readSchedule(
-    @Body() scheduleReadDto: ReadScheduleDto,
+    @Param('date') date: string,
   ): Promise<ResponseSchedulesDto> {
+    const scheduleReadDto: ReadScheduleDto = { date: date, }
     return this.schedulesService.readSchedule(scheduleReadDto);
   }
 

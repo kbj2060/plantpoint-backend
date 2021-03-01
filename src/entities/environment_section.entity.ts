@@ -16,6 +16,9 @@ export class EnvironmentSection {
   @Column()
   environmentSection: string;
 
+  @Column()
+  section: string;
+
   @CreateDateColumn()
   created: Date;
 

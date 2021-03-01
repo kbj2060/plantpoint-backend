@@ -95,26 +95,38 @@ export class AutomationsService {
   }
 
   async createAutomation(
-    automationCreateDto: CreateAutomationDto,
+    automationCreateDto: Record<string, CreateAutomationDto>,
+    controlledBy: string,
   ): Promise<void> {
-    const user: User = await this.getUser(automationCreateDto.controlledBy);
+    const automations: AutomationCreate[] = [];
+    const user: User = await this.getUser(controlledBy);
     checkUser(user);
+    for (const dto of Object.values(automationCreateDto)) {
+      const section: MachineSection = await this.getSection(dto.machineSection);
+      checkMachineSection(section);
 
-    const section: MachineSection = await this.getSection(
+      const machine: Machine = await this.getMachine(dto.machine);
+      checkMachine(machine);
+
+      const automation: AutomationCreate = {
+        ...dto,
+        machine: machine,
+        machineSection: section,
+        controlledBy: user,
+      };
+
+      automations.push(automation);
+    }
+
+/*    const section: MachineSection = await this.getSection(
       automationCreateDto.machineSection,
     );
     checkMachineSection(section);
 
     const machine: Machine = await this.getMachine(automationCreateDto.machine);
-    checkMachine(machine);
+    checkMachine(machine);*/
 
-    const automation: AutomationCreate = {
-      ...automationCreateDto,
-      machine: machine,
-      machineSection: section,
-      controlledBy: user,
-    };
 
-    await this.automationsRepository.save(plainToClass(Automation, automation));
+    await this.automationsRepository.save(plainToClass(Automation, automations));
   }
 }

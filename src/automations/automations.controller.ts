@@ -14,10 +14,11 @@ export class AutomationsController {
     return await this.automationsService.readAutomation(section);
   }
 
-  @Post('/create')
+  @Post('/create/:controlledBy')
   createAutomation(
-    @Body() automationCreateDto: CreateAutomationDto,
+    @Body() automationCreateDto: Record<string, CreateAutomationDto>,
+    @Param('controlledBy') controlledBy: string,
   ): Promise<void> {
-    return this.automationsService.createAutomation(automationCreateDto);
+    return this.automationsService.createAutomation(automationCreateDto, controlledBy);
   }
 }

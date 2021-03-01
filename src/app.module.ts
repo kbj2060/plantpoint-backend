@@ -13,9 +13,16 @@ import { SwitchesModule } from './switches/switches.module';
 import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
 import { EventsModule } from './events/events.module';
+import { MachinesController } from './machines/machines.controller';
+import { MachinesService } from './machines/machines.service';
+import { MachinesModule } from './machines/machines.module';
+import {MqttModule} from "nest-mqtt";
 
 @Module({
   imports: [
+    MqttModule.forRoot({
+
+    }),
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60s' },
@@ -50,6 +57,7 @@ import { EventsModule } from './events/events.module';
     AuthenticationModule,
     PassportModule,
     EventsModule,
+    MachinesModule,
   ],
   controllers: [AppController],
   providers: [

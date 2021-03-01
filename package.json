@@ -41,6 +41,7 @@
     "mqtt": "^4.2.6",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
+    "nest-mqtt": "^0.1.6",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",

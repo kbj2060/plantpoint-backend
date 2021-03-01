@@ -27,16 +27,22 @@ export class EnvironmentsService {
     private environmentSectionRepository: Repository<EnvironmentSection>,
   ) {}
 
-  async getSection(sectionName: string): Promise<EnvironmentSection> {
+  async getEnvironmentSection(sectionName: string): Promise<EnvironmentSection> {
     return await this.environmentSectionRepository.findOne({
       environmentSection: sectionName,
+    });
+  }
+
+  async getSection(sectionName: string): Promise<EnvironmentSection> {
+    return await this.environmentSectionRepository.findOne({
+      section: sectionName,
     });
   }
 
   async readLastEnvironment(
     section: string,
   ): Promise<ResponseLastEnvironmentDto> {
-    const environmentSection: EnvironmentSection = await this.getSection(
+    const environmentSection: EnvironmentSection = await this.getEnvironmentSection(
       section,
     );
     checkEnvironmentSection(environmentSection);
@@ -64,7 +70,7 @@ export class EnvironmentsService {
     readTodayEnvironment: ReadTodayEnvironmentDto,
   ): Promise<ResponseEnvironmentHistoryDto> {
     const environmentSection: EnvironmentSection = await this.getSection(
-      readTodayEnvironment.environmentSection,
+      readTodayEnvironment.section,
     );
     checkEnvironmentSection(environmentSection);
 
@@ -80,8 +86,8 @@ export class EnvironmentsService {
       ])
       .where('environment.created >= :startAt', { startAt })
       .andWhere('environment.created <= :endAt', { endAt })
-      .andWhere('environmentSection LIKE :section', {
-        section: '%' + readTodayEnvironment.environmentSection + '%',
+      .andWhere('environmentSection.section = :section', {
+        section: readTodayEnvironment.section,
       })
       .orderBy('environment.id', 'DESC')
       .getRawMany();
@@ -91,7 +97,7 @@ export class EnvironmentsService {
   }
 
   async createCurrentEnvironment(environmentCreateDto: CreateEnvDto) {
-    const section: EnvironmentSection = await this.getSection(
+    const section: EnvironmentSection = await this.getEnvironmentSection(
       environmentCreateDto.environmentSection,
     );
     checkEnvironmentSection(section);

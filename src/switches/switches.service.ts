@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Switch } from '../entities/switch.entity';
 import { Repository } from 'typeorm';
@@ -20,6 +20,7 @@ import {
   checkMachineSection,
   checkUser,
 } from '../utils/error-handler';
+import { MqttService } from 'nest-mqtt';
 
 const extractOnMachines = (
   switches: PowerOnSwitch[],
@@ -30,10 +31,7 @@ const extractOnMachines = (
     machines: [],
   };
   switches.forEach((_switch: PowerOnSwitch) => {
-    if (
-      onMachines.hasOwnProperty('machineSection') &&
-      _switch.status === MachineStatus.ON
-    ) {
+    if ( onMachines.hasOwnProperty('machineSection') && _switch.status === MachineStatus.ON ) {
       onMachines.machines.push(_switch.machine);
     }
   });
@@ -49,6 +47,8 @@ export class SwitchesService {
     private usersRepository: Repository<User>,
     @InjectRepository(MachineSection)
     private machineSectionRepository: Repository<MachineSection>,
+    @Inject(MqttService)
+    private readonly mqttService: MqttService,
   ) {}
 
   async getUser(username: string): Promise<User> {
@@ -63,7 +63,7 @@ export class SwitchesService {
     });
   }
 
-  async readLastSwitches(section: string): Promise<ResponseLastSwitchDto> {
+  async readLastSwitches(section: string): Promise<PowerOnSwitch[]> {
     const machineSection: MachineSection = await this.machineSectionRepository.findOne(
       {
         machineSection: section,
@@ -83,16 +83,13 @@ export class SwitchesService {
       .where(
         `switch.id IN (SELECT max(id) FROM iot.switch 
                               WHERE machineSection.machineSection = \"${section}\"
-                                AND status = ${MachineStatus.ON}
                               GROUP BY machine)`,
       )
       .orderBy('switch.id')
       .getRawMany();
 
     checkCurrentSwitches(lastSwitch);
-
-    const onMachines: PowerOnMachines = extractOnMachines(lastSwitch, section);
-    return plainToClass(ResponseLastSwitchDto, onMachines);
+    return lastSwitch;
   }
 
   async readSwitchHistory(section: string): Promise<ResponseHistorySwitchDto> {
@@ -115,20 +112,22 @@ export class SwitchesService {
     });
   }
 
-  async createSwitch(switchCreateDto: CreateSwitchDto): Promise<void> {
-    const user: User = await this.getUser(switchCreateDto.controlledBy);
+  async createSwitch(dto: CreateSwitchDto): Promise<void> {
+    const user: User = await this.getUser(dto.controlledBy);
     checkUser(user);
 
     const section: MachineSection = await this.getSection(
-      switchCreateDto.machineSection,
+      dto.machineSection,
     );
     checkMachineSection(section);
 
     const _switch: SwitchCreate = {
-      ...switchCreateDto,
+      ...dto,
       machineSection: section,
       controlledBy: user,
     };
+    //TODO : socket.io 처리
+    await this.mqttService.publish(`switch/${dto.machineSection}/${dto.machine}`, dto.status.toString());
     await this.switchesRepository.save(plainToClass(Switch, _switch));
   }
 }

@@ -6,7 +6,7 @@ export class ReadTodayEnvironmentDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(10)
-  readonly environmentSection: string;
+  readonly section: string;
 
   @Expose()
   @IsNotEmpty()

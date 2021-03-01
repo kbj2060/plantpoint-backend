@@ -8,7 +8,7 @@ import {
   Payload,
 } from '@nestjs/microservices';
 import { CreateEnvDto } from '../dto/create-env.dto';
-import { getSectionInTopic } from '../utils/utils';
+import {getEnvironmentSectionInTopic, getSectionInTopic} from '../utils/utils';
 import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
 
 @Controller('environments')
@@ -22,19 +22,22 @@ export class EnvironmentsController {
     return this.environmentsService.readLastEnvironment(environmentSection);
   }
 
-  @Get('/read/history')
+  @Get('/read/history/:section/:environment')
   readTodayEnvironmentHistory(
-    @Body() readTodayEnvironment: ReadTodayEnvironmentDto,
+    @Param('section') section: string,
+    @Param('environment') environment: string,
   ) {
-    return this.environmentsService.readTodayEnvironmentHistory(
-      readTodayEnvironment,
-    );
+    const readTodayEnvironment: ReadTodayEnvironmentDto = {
+      section : section,
+      environmentName: environment,
+    }
+    return this.environmentsService.readTodayEnvironmentHistory( readTodayEnvironment );
   }
 
-  @MessagePattern('env/plant/+')
+  @MessagePattern('env/section/+')
   getMqttEnvironment(@Payload() data: JSON, @Ctx() context: MqttContext) {
     const createEnvDto: CreateEnvDto = {
-      environmentSection: getSectionInTopic(context.getTopic()),
+      environmentSection: getEnvironmentSectionInTopic(context.getTopic()),
       co2: data['co2'],
       temperature: data['temperature'],
       humidity: data['humidity'],

@@ -66,7 +66,7 @@ describe('AppController (e2e)', () => {
     it('/automations/create (POST)', () => {
       const automationCreateDto: CreateAutomationDto = {
         machineSection: 's1',
-        controlledBy: 'llewyn',
+        automationType: 'range',
         machine: 'cooler',
         start: ['10'],
         end: ['11'],
@@ -130,7 +130,7 @@ describe('AppController (e2e)', () => {
 
     it('/environments/read/history (GET)', () => {
       const readTodayEnvironment: ReadTodayEnvironmentDto = {
-        environmentSection: 's1-1',
+        section: 'd1',
         environmentName: 'co2',
       };
       return request(app.getHttpServer())
