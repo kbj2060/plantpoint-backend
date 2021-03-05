@@ -13,8 +13,6 @@ import { SwitchesModule } from './switches/switches.module';
 import { UsersModule } from './users/users.module';
 import { AppController } from './app.controller';
 import { EventsModule } from './events/events.module';
-import { MachinesController } from './machines/machines.controller';
-import { MachinesService } from './machines/machines.service';
 import { MachinesModule } from './machines/machines.module';
 import {MqttModule} from "nest-mqtt";
 
@@ -60,11 +58,6 @@ import {MqttModule} from "nest-mqtt";
     MachinesModule,
   ],
   controllers: [AppController],
-  providers: [
-    /*    {
-      provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
-    },*/
-  ],
+  providers: [ ],
 })
 export class AppModule {}
