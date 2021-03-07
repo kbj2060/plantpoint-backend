@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param } from '@nestjs/common';
+import {Body, Controller, Get, Param, UseGuards} from '@nestjs/common';
 import { EnvironmentsService } from './environments.service';
 import { ResponseLastEnvironmentDto } from '../dto/response-last-environment.dto';
 import {
@@ -10,12 +10,14 @@ import {
 import { CreateEnvDto } from '../dto/create-env.dto';
 import {getEnvironmentSectionInTopic, getSectionInTopic} from '../utils/utils';
 import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
+import {JwtAuthGuard} from "../authentication/jwt-auth.guard";
 
 @Controller('environments')
 export class EnvironmentsController {
   constructor(readonly environmentsService: EnvironmentsService) {}
 
   @Get('/read/last/:environmentSection')
+  @UseGuards(JwtAuthGuard)
   readLastEnvironment(
     @Param('environmentSection') environmentSection: string,
   ): Promise<ResponseLastEnvironmentDto> {
@@ -23,6 +25,7 @@ export class EnvironmentsController {
   }
 
   @Get('/read/history/:section/:environment')
+  @UseGuards(JwtAuthGuard)
   readTodayEnvironmentHistory(
     @Param('section') section: string,
     @Param('environment') environment: string,

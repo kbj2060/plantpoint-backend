@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
 import { CreateSwitchDto } from '../dto/create-switch.dto';
 import { SwitchesService } from './switches.service';
 import { ResponseHistorySwitchDto } from '../dto/response-history-switch.dto';
@@ -8,15 +8,15 @@ import {
   MqttContext,
   Payload,
 } from '@nestjs/microservices';
-import { Socket, Server } from 'socket.io';
 import {PowerOnSwitch} from "../interfaces/switches.interface";
-import {getMachineInTopic, getSectionInTopic} from "../utils/utils";
+import {JwtAuthGuard} from "../authentication/jwt-auth.guard";
 
 @Controller('switches')
 export class SwitchesController {
   constructor(readonly switchesService: SwitchesService) {}
 
   @Get('/read/last/:section')
+  @UseGuards(JwtAuthGuard)
   async readLastSwitches (
     @Param('section') section: string,
   ): Promise<PowerOnSwitch[]> {
@@ -24,6 +24,7 @@ export class SwitchesController {
   }
 
   @Get('/read/history/:section')
+  @UseGuards(JwtAuthGuard)
   async readSwitchHistory (
     @Param('section') section: string,
   ): Promise<ResponseHistorySwitchDto> {
@@ -32,8 +33,8 @@ export class SwitchesController {
 
   /* 텔레그램 알림 추가할 것. */
   @Post('/create')
+  @UseGuards(JwtAuthGuard)
   async createSwitch (@Body() switchCreateDto: CreateSwitchDto): Promise<void> {
-
     return this.switchesService.createSwitch(switchCreateDto);
   }
 
