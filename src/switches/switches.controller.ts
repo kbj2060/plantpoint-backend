@@ -10,6 +10,7 @@ import {
 } from '@nestjs/microservices';
 import {PowerOnSwitch} from "../interfaces/switches.interface";
 import {JwtAuthGuard} from "../authentication/jwt-auth.guard";
+import {Socket} from "socket.io";
 
 @Controller('switches')
 export class SwitchesController {
@@ -31,7 +32,9 @@ export class SwitchesController {
     return this.switchesService.readSwitchHistory(section);
   }
 
-  /* 텔레그램 알림 추가할 것. */
+  /* TODO:
+      * Automation 스크립트에서도 mqtt로 publish 하지말고 http /create 를 통해 db 저장과 mqtt를 한 번에 동작
+  */
   @Post('/create')
   @UseGuards(JwtAuthGuard)
   async createSwitch (@Body() switchCreateDto: CreateSwitchDto): Promise<void> {

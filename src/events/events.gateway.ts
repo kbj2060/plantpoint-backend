@@ -4,26 +4,23 @@ import {
   OnGatewayInit,
   WebSocketServer,
   OnGatewayConnection,
-  OnGatewayDisconnect, MessageBody,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+import {ControlSwitchEvent, WebSocketEvent} from "../interfaces/events.interface";
 
-interface ReducerControlSwitchesDto {
-  machineSection: string;
-  machine: string;
-  status:  boolean;
-}
-
-@WebSocketGateway( {  transports: [ 'websocket'], path:'/ws' })
+@WebSocketGateway(4000,{
+  transports: [ 'websocket'],
+  path:'/ws',
+})
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('SwitchWebSocket');
+  private logger: Logger = new Logger('EventsGateway');
 
-  @SubscribeMessage('sendSwitchControl')
-  handleMessage(client: Socket, payload: ReducerControlSwitchesDto) {
-    this.server.emit('receiveSwitchControl', payload);
+  @SubscribeMessage(WebSocketEvent.SEND_SWITCH_TO_SERVER)
+  handleMessage(client: Socket, payload: ControlSwitchEvent): void {
+    this.server.emit(WebSocketEvent.SEND_SWITCH_TO_CLIENT, payload);
   }
 
   afterInit(server: Server) {

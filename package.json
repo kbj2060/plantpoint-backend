@@ -50,8 +50,6 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6",
-    "socket.io": "^3.1.2",
-    "socket.io-redis": "^6.0.1",
     "typeorm": "^0.2.31"
   },
   "devDependencies": {
@@ -62,7 +60,6 @@
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.31",
     "@types/redis": "^2.8.28",
-    "@types/socket.io": "^2.1.13",
     "@types/supertest": "^2.0.10",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
