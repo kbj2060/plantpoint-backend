@@ -37,43 +37,40 @@ export class CurrentsService {
   async readCurrent(
     currentReadDto: ReadCurrentDto,
   ): Promise<ResponseLastCurrentDto> {
-    const machine = await this.getMachine(currentReadDto.machine);
+    const [ machine, machineSection, current ]: [Machine, MachineSection, LastCurrent] = await Promise.all([
+      await this.getMachine(currentReadDto.machine),
+      await this.getSection(currentReadDto.machineSection),
+      await this.currentsRepository
+        .createQueryBuilder('current')
+        .leftJoinAndSelect('current.machineSection', 'machineSection')
+        .select([
+          'current.machine AS machine',
+          'machineSection.machineSection AS machineSection',
+          'current.current AS current',
+        ])
+        .where('machine = :machine', { machine: currentReadDto.machine })
+        .andWhere('machineSection = :machineSection', {
+          machineSection: currentReadDto.machineSection,
+        })
+        .orderBy('current.id', 'DESC')
+        .getRawOne()
+    ])
+
     checkMachine(machine);
-
-    const machineSection = await this.getSection(currentReadDto.machineSection);
     checkMachineSection(machineSection);
-
-    const current: LastCurrent = await this.currentsRepository
-      .createQueryBuilder('current')
-      .leftJoinAndSelect('current.machineSection', 'machineSection')
-      .select([
-        'current.machine AS machine',
-        'machineSection.machineSection AS machineSection',
-        'current.current AS current',
-      ])
-      .where('machine = :machine', { machine: currentReadDto.machine })
-      .andWhere('machineSection = :machineSection', {
-        machineSection: currentReadDto.machineSection,
-      })
-      .orderBy('current.id', 'DESC')
-      .getRawOne();
 
     return plainToClass(ResponseLastCurrentDto, current);
   }
 
   async createCurrent(currentCreateDto: CreateCurrentDto): Promise<void> {
-    const machine = await this.getMachine(currentCreateDto.machine);
-    checkMachine(machine);
+    const [ machine, machineSection ]: [ Machine, MachineSection ] = await Promise.all([
+      await this.getMachine(currentCreateDto.machine), await this.getSection(currentCreateDto.machineSection)
+    ])
 
-    const machineSection: MachineSection = await this.getSection(
-      currentCreateDto.machineSection,
-    );
+    checkMachine(machine);
     checkMachineSection(machineSection);
 
-    const current: CurrentCreate = {
-      ...currentCreateDto,
-      machineSection: machineSection,
-    };
-    await this.currentsRepository.save(plainToClass(Current, current));
-  }
+    await this.currentsRepository.save(
+      plainToClass(Current, {...currentCreateDto, machineSection: machineSection } as CurrentCreate ));
+    }
 }

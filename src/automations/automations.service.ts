@@ -32,45 +32,47 @@ export class AutomationsService {
   ) {}
 
   async readAutomation(section: string): Promise<ResponseLastAutomationDto> {
-    const machineSection: MachineSection = await this.machineSectionRepository.findOne(
-      {
-        machineSection: section,
-      },
-    );
-    checkMachineSection(machineSection);
-
-    const automations: LastAutomation[] = await this.automationsRepository
-      .createQueryBuilder('automation')
-      .innerJoinAndMapOne(
-        'automation.machine',
-        Machine,
-        'machine',
-        'automation.machineId = machine.id',
-      )
-      .innerJoinAndMapOne(
-        'automation.machineSection',
-        MachineSection,
-        'section',
-        'automation.machineSection = section.id',
-      )
-      .select([
-        'automation.start',
-        'automation.end',
-        'automation.term',
-        'automation.enable',
-        'machine.machine',
-        'machine.automationType',
-        'section.machineSection',
-      ])
-      .where(
-        `automation.id IN (SELECT max(id) 
+    const [ machineSection, automations ] = await Promise.all([
+      await this.machineSectionRepository.findOne(
+        {
+          machineSection: section,
+        },
+      ),
+      await this.automationsRepository
+        .createQueryBuilder('automation')
+        .innerJoinAndMapOne(
+          'automation.machine',
+          Machine,
+          'machine',
+          'automation.machineId = machine.id',
+        )
+        .innerJoinAndMapOne(
+          'automation.machineSection',
+          MachineSection,
+          'section',
+          'automation.machineSection = section.id',
+        )
+        .select([
+          'automation.start',
+          'automation.end',
+          'automation.term',
+          'automation.enable',
+          'machine.machine',
+          'machine.automationType',
+          'section.machineSection',
+        ])
+        .where(
+          `automation.id IN (SELECT max(id) 
                               FROM automation 
                               WHERE section.machineSection = :section
                               GROUP BY automation.machineId)`,
-        { section: section },
-      )
-      .orderBy('automation.id', 'DESC')
-      .getMany();
+          { section: section },
+        )
+        .orderBy('automation.id', 'DESC')
+        .getMany()
+    ])
+    checkMachineSection(machineSection);
+
     return plainToClass(ResponseLastAutomationDto, {
       lastAutomations: automations,
     });
@@ -101,31 +103,22 @@ export class AutomationsService {
     const automations: AutomationCreate[] = [];
     const user: User = await this.getUser(controlledBy);
     checkUser(user);
-    for (const dto of Object.values(automationCreateDto)) {
-      const section: MachineSection = await this.getSection(dto.machineSection);
-      checkMachineSection(section);
 
-      const machine: Machine = await this.getMachine(dto.machine);
+    for (const dto of Object.values(automationCreateDto)) {
+      const [ section, machine ] = await Promise.all([
+        await this.getSection(dto.machineSection), await this.getMachine(dto.machine)
+      ])
+
+      checkMachineSection(section);
       checkMachine(machine);
 
-      const automation: AutomationCreate = {
+      automations.push({
         ...dto,
         machine: machine,
         machineSection: section,
         controlledBy: user,
-      };
-
-      automations.push(automation);
+      } as AutomationCreate);
     }
-
-/*    const section: MachineSection = await this.getSection(
-      automationCreateDto.machineSection,
-    );
-    checkMachineSection(section);
-
-    const machine: Machine = await this.getMachine(automationCreateDto.machine);
-    checkMachine(machine);*/
-
 
     await this.automationsRepository.save(plainToClass(Automation, automations));
   }

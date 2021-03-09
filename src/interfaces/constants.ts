@@ -4,6 +4,8 @@ export enum DateFormat {
   SECONDS_FORMAT = 'YYYY-MM-DD HH:mm:ss',
 }
 
+export const WebSocketPort = 4000;
+
 export enum MachineStatus {
   OFF = 0,
   ON = 1,

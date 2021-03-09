@@ -13,7 +13,6 @@ import { DateFormat, ErrorMessages } from '../interfaces/constants';
 import {
   ScheduleCreate,
   SelectedDateSchedule,
-  ScheduleUpdate,
 } from '../interfaces/schedules.interface';
 import { ResponseSchedulesDto } from '../dto/response-schedules.dto';
 import { checkSchedule, checkUser } from '../utils/error-handler';
@@ -76,17 +75,17 @@ export class SchedulesService {
   }
 
   async updateSchedule(scheduleUpdateDto: UpdateScheduleDto): Promise<void> {
-    const schedule: ScheduleUpdate = scheduleUpdateDto;
     const findingSchedule: Schedule = await this.findScheduleById(
       scheduleUpdateDto.id,
     );
+
     checkSchedule(findingSchedule);
 
     await this.schedulesRepository
       .createQueryBuilder('schedule')
       .update('schedule')
-      .where('id = :id', { id: schedule.id })
-      .set(plainToClass(Schedule, schedule))
+      .where('id = :id', { id: scheduleUpdateDto.id })
+      .set(plainToClass(Schedule, scheduleUpdateDto))
       .execute();
   }
 

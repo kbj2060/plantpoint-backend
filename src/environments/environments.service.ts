@@ -17,6 +17,8 @@ import { DateFormat } from '../interfaces/constants';
 import { EnvironmentSection } from '../entities/environment_section.entity';
 import { checkEnvironmentSection } from '../utils/error-handler';
 import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
+import {Machine} from "../entities/machine.entity";
+import {MachineSection} from "../entities/machine_section.entity";
 
 @Injectable()
 export class EnvironmentsService {
@@ -39,29 +41,24 @@ export class EnvironmentsService {
     });
   }
 
-  async readLastEnvironment(
-    section: string,
-  ): Promise<ResponseLastEnvironmentDto> {
-    const environmentSection: EnvironmentSection = await this.getEnvironmentSection(
-      section,
-    );
+  async readLastEnvironment( section: string ): Promise<ResponseLastEnvironmentDto> {
+    const [ environmentSection, lastEnvironment ]: [ EnvironmentSection, LastEnvironment ] = await Promise.all([
+      await this.getEnvironmentSection( section ),
+      await this.environmentsRepository
+        .createQueryBuilder('environment')
+        .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
+        .select([
+          'environment.co2',
+          'environment.humidity',
+          'environment.temperature',
+        ])
+        .where('environmentSection.environmentSection = :section', { section })
+        .orderBy('environment.id', 'DESC')
+        .getOne()
+    ])
     checkEnvironmentSection(environmentSection);
 
-    const lastEnvironment: LastEnvironment = await this.environmentsRepository
-      .createQueryBuilder('environment')
-      .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
-      .select([
-        'environment.co2',
-        'environment.humidity',
-        'environment.temperature',
-      ])
-      .where('environmentSection.environmentSection = :section', { section })
-      .orderBy('environment.id', 'DESC')
-      .getOne();
-
-    if (!lastEnvironment) {
-      return new ResponseLastEnvironmentDto();
-    }
+    if (!lastEnvironment) { return new ResponseLastEnvironmentDto(); }
 
     return plainToClass(ResponseLastEnvironmentDto, lastEnvironment);
   }
@@ -69,28 +66,30 @@ export class EnvironmentsService {
   async readTodayEnvironmentHistory(
     readTodayEnvironment: ReadTodayEnvironmentDto,
   ): Promise<ResponseEnvironmentHistoryDto> {
-    const environmentSection: EnvironmentSection = await this.getSection(
-      readTodayEnvironment.section,
-    );
-    checkEnvironmentSection(environmentSection);
-
     const startAt = moment(new Date()).format(DateFormat.DAY_FORMAT);
     const endAt = getPresentDatetime();
-    const environmentsHistory: EnvironmentHistory[] = await this.environmentsRepository
-      .createQueryBuilder('environment')
-      .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
-      .select([
-        `environment.${readTodayEnvironment.environmentName} AS ${readTodayEnvironment.environmentName}`,
-        'environmentSection.environmentSection AS environmentSection',
-        'environment.created AS created',
-      ])
-      .where('environment.created >= :startAt', { startAt })
-      .andWhere('environment.created <= :endAt', { endAt })
-      .andWhere('environmentSection.section = :section', {
-        section: readTodayEnvironment.section,
-      })
-      .orderBy('environment.id', 'DESC')
-      .getRawMany();
+
+    const [ environmentSection, environmentsHistory ]: [ EnvironmentSection, EnvironmentHistory[] ] = await Promise.all([
+      await this.getSection( readTodayEnvironment.section ),
+      await this.environmentsRepository
+        .createQueryBuilder('environment')
+        .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
+        .select([
+          `environment.${readTodayEnvironment.environmentName} AS ${readTodayEnvironment.environmentName}`,
+          'environmentSection.environmentSection AS environmentSection',
+          'environment.created AS created',
+        ])
+        .where('environment.created >= :startAt', { startAt })
+        .andWhere('environment.created <= :endAt', { endAt })
+        .andWhere('environmentSection.section = :section', {
+          section: readTodayEnvironment.section,
+        })
+        .orderBy('environment.id', 'DESC')
+        .getRawMany()
+    ])
+
+    checkEnvironmentSection(environmentSection);
+
     return plainToClass(ResponseEnvironmentHistoryDto, {
       histories: environmentsHistory,
     });
@@ -100,14 +99,14 @@ export class EnvironmentsService {
     const section: EnvironmentSection = await this.getEnvironmentSection(
       environmentCreateDto.environmentSection,
     );
+
     checkEnvironmentSection(section);
 
-    const environment: EnvironmentCreate = {
-      ...environmentCreateDto,
-      environmentSection: section,
-    };
     await this.environmentsRepository.save(
-      plainToClass(Environment, environment),
+      plainToClass(Environment, {
+        ...environmentCreateDto,
+        environmentSection: section,
+      } as EnvironmentCreate),
     );
   }
 }

@@ -64,31 +64,33 @@ export class SwitchesService {
   }
 
   async readLastSwitches(section: string): Promise<PowerOnSwitch[]> {
-    const machineSection: MachineSection = await this.machineSectionRepository.findOne(
+    const [machineSection, lastSwitch] = await Promise.all([
+      await this.machineSectionRepository.findOne(
       {
         machineSection: section,
-      },
-    );
-    checkMachineSection(machineSection);
-
-    const lastSwitch: PowerOnSwitch[] = await this.switchesRepository
-      .createQueryBuilder('switch')
-      .leftJoinAndSelect('switch.machineSection', 'machineSection')
-      //.leftJoinAndSelect('switch.controlledBy', 'controlledBy')
-      .select([
-        'machineSection.machineSection AS machineSection',
-        'switch.machine AS machine',
-        'switch.status AS status',
-      ])
-      .where(
-        `switch.id IN (SELECT max(id) FROM iot.switch 
+        },
+      ),
+      await this.switchesRepository
+        .createQueryBuilder('switch')
+        .leftJoinAndSelect('switch.machineSection', 'machineSection')
+        //.leftJoinAndSelect('switch.controlledBy', 'controlledBy')
+        .select([
+          'machineSection.machineSection AS machineSection',
+          'switch.machine AS machine',
+          'switch.status AS status',
+        ])
+        .where(
+          `switch.id IN (SELECT max(id) FROM iot.switch 
                               WHERE machineSection.machineSection = \"${section}\"
                               GROUP BY machine)`,
-      )
-      .orderBy('switch.id')
-      .getRawMany();
+        )
+        .orderBy('switch.id')
+        .getRawMany()
+    ]);
 
+    checkMachineSection(machineSection);
     checkCurrentSwitches(lastSwitch);
+
     return lastSwitch;
   }
 
@@ -113,12 +115,11 @@ export class SwitchesService {
   }
 
   async createSwitch(dto: CreateSwitchDto): Promise<void> {
-    const user: User = await this.getUser(dto.controlledBy);
-    checkUser(user);
+    const [ user, section ] = await Promise.all([
+      await this.getUser(dto.controlledBy), await this.getSection(dto.machineSection)
+    ])
 
-    const section: MachineSection = await this.getSection(
-      dto.machineSection,
-    );
+    checkUser(user);
     checkMachineSection(section);
 
     const _switch: SwitchCreate = {
@@ -126,7 +127,7 @@ export class SwitchesService {
       machineSection: section,
       controlledBy: user,
     };
-    //TODO : socket.io 처리
+
     await this.mqttService.publish(`switch/${dto.machineSection}/${dto.machine}`, dto.status.toString());
     await this.switchesRepository.save(plainToClass(Switch, _switch));
   }

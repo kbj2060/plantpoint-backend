@@ -9,14 +9,15 @@ import {
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import {ControlSwitchEvent, WebSocketEvent} from "../interfaces/events.interface";
+import {WebSocketPort} from "../interfaces/constants";
 
-@WebSocketGateway(4000,{
+@WebSocketGateway(WebSocketPort,{
   transports: [ 'websocket'],
   path:'/ws',
 })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-  private logger: Logger = new Logger('EventsGateway');
+  private logger: Logger = new Logger('SwitchesGateWay');
 
   @SubscribeMessage(WebSocketEvent.SEND_SWITCH_TO_SERVER)
   handleMessage(client: Socket, payload: ControlSwitchEvent): void {

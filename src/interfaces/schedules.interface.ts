@@ -8,13 +8,6 @@ export interface SelectedDateSchedule {
   binding: number;
 }
 
-export interface ScheduleUpdate {
-  id: number;
-  date: string[];
-  title: string;
-  content: string;
-}
-
 export interface ScheduleCreate {
   date: string[];
   title: string;
