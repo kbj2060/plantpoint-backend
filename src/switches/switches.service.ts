@@ -21,6 +21,7 @@ import {
   checkUser,
 } from '../utils/error-handler';
 import { MqttService } from 'nest-mqtt';
+import {Machine} from "../entities/machine.entity";
 
 const extractOnMachines = (
   switches: PowerOnSwitch[],
@@ -38,6 +39,10 @@ const extractOnMachines = (
   return onMachines;
 };
 
+const flattenMachines = (machines: Machine[]) => {
+  return machines.map((m)=>Object.values(m)[0])
+}
+
 @Injectable()
 export class SwitchesService {
   constructor(
@@ -47,6 +52,8 @@ export class SwitchesService {
     private usersRepository: Repository<User>,
     @InjectRepository(MachineSection)
     private machineSectionRepository: Repository<MachineSection>,
+    @InjectRepository(Machine)
+    private machineRepository: Repository<Machine>,
     @Inject(MqttService)
     private readonly mqttService: MqttService,
   ) {}
@@ -64,34 +71,49 @@ export class SwitchesService {
   }
 
   async readLastSwitches(section: string): Promise<PowerOnSwitch[]> {
-    const [machineSection, lastSwitch] = await Promise.all([
-      await this.machineSectionRepository.findOne(
-      {
-        machineSection: section,
-        },
-      ),
-      await this.switchesRepository
-        .createQueryBuilder('switch')
-        .leftJoinAndSelect('switch.machineSection', 'machineSection')
-        //.leftJoinAndSelect('switch.controlledBy', 'controlledBy')
-        .select([
-          'machineSection.machineSection AS machineSection',
-          'switch.machine AS machine',
-          'switch.status AS status',
-        ])
-        .where(
-          `switch.id IN (SELECT max(id) FROM iot.switch 
-                              WHERE machineSection.machineSection = \"${section}\"
-                              GROUP BY machine)`,
-        )
-        .orderBy('switch.id')
-        .getRawMany()
-    ]);
-
+    const machineSection: MachineSection = await this.machineSectionRepository.findOne({
+      machineSection: section
+    });
     checkMachineSection(machineSection);
-    checkCurrentSwitches(lastSwitch);
 
-    return lastSwitch;
+    const machines: Machine[] = await this.machineRepository
+      .createQueryBuilder('machine')
+      .leftJoinAndSelect('machine.machineSection', 'machineSection')
+      .select('machine.machine')
+      .where(`machineSection = :section`, {section})
+      .getMany();
+
+    const lastSwitches = []
+    for (const machine of flattenMachines(machines) ) {
+      lastSwitches.push(
+        await this.switchesRepository
+          .createQueryBuilder('switch')
+          .leftJoinAndSelect('switch.machineSection', 'machineSection')
+          //.leftJoinAndSelect('switch.controlledBy', 'controlledBy')
+          .select([
+            'machineSection.machineSection AS machineSection',
+            'switch.machine AS machine',
+            'switch.status AS status',
+          ])
+          .where(
+            `switch.machine = :machine AND machineSection = :section`, {
+              machine: machine, section: section
+            }
+          )
+          .orderBy('switch.id', "DESC")
+          .limit(1)
+          /*.where(
+            `switch.id IN (SELECT max(id) FROM iot.switch
+                                WHERE machineSection = \"${section}\"
+                                GROUP BY machine)`,
+          )*/
+          .getRawOne()
+      );
+    }
+
+    checkCurrentSwitches(lastSwitches);
+
+    return lastSwitches;
   }
 
   async readSwitchHistory(section: string): Promise<ResponseHistorySwitchDto> {

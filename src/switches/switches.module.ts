@@ -5,9 +5,10 @@ import { Switch } from '../entities/switch.entity';
 import { SwitchesController } from './switches.controller';
 import { SwitchesService } from './switches.service';
 import { MachineSection } from '../entities/machine_section.entity';
+import {Machine} from "../entities/machine.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Switch, User, MachineSection])],
+  imports: [TypeOrmModule.forFeature([Switch, User, MachineSection, Machine])],
   controllers: [SwitchesController],
   providers: [SwitchesService],
 })
