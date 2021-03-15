@@ -12,7 +12,7 @@ import {ControlSwitchEvent, WebSocketEvent} from "../interfaces/events.interface
 import {WebSocketPort} from "../interfaces/constants";
 
 @WebSocketGateway(WebSocketPort,{
-  transports: [ 'websocket'],
+  namespace: '/switch',
   path:'/ws',
 })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {

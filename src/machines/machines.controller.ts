@@ -13,9 +13,6 @@ export class MachinesController {
   async readLastSwitches(
     @Param('section') section: string, @Req() req: any,
   ): Promise<ResponseMachineDto[]> {
-/*
-    console.log(req.user)
-*/
     return this.machinesService.readMachines(section);
   }
 }

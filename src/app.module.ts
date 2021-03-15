@@ -15,6 +15,7 @@ import { AppController } from './app.controller';
 import { EventsModule } from './events/events.module';
 import { MachinesModule } from './machines/machines.module';
 import {MqttModule} from "nest-mqtt";
+import { SectionsModule } from './sections/sections.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import {MqttModule} from "nest-mqtt";
     PassportModule,
     EventsModule,
     MachinesModule,
+    SectionsModule,
   ],
   controllers: [AppController],
   providers: [ ],
