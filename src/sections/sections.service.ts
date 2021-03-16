@@ -13,10 +13,10 @@ export class SectionsService {
     return this.environmentSectionRepository
       .createQueryBuilder('environment_section')
       .select([
-        'environment_section.environmentSection',
-        'environment_section.section',
+        'environment_section.environmentSection as e_section',
+        'environment_section.section as m_section',
       ])
       .where('section = :section', {section: m_section})
-      .getMany()
+      .getRawMany()
   }
 }
