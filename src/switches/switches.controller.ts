@@ -20,8 +20,6 @@ export class SwitchesController {
   async readLastSwitches (
     @Param('section') section: string,
   ): Promise<PowerOnSwitch[]> {
-    console.log("called")
-
     return this.switchesService.readLastSwitches(section);
   }
 
