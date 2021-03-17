@@ -20,6 +20,10 @@ import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
 import {Machine} from "../entities/machine.entity";
 import {MachineSection} from "../entities/machine_section.entity";
 
+const flattenSections = (sections) => {
+  return sections.map((m)=>Object.values(m)[0])
+}
+
 @Injectable()
 export class EnvironmentsService {
   constructor(
@@ -29,7 +33,34 @@ export class EnvironmentsService {
     private environmentSectionRepository: Repository<EnvironmentSection>,
   ) {}
 
-  async getEnvironmentSection(sectionName: string): Promise<EnvironmentSection> {
+  async readLastAllEnvironments( mSection: string ) {
+    const eSections = await this.environmentSectionRepository
+      .createQueryBuilder('environmentSection')
+      .select('environmentSection.environmentSection')
+      .where(`section = :section`, {section: mSection})
+      .getMany();
+
+    const lastAllEnvironments = []
+    for (const eSection of flattenSections(eSections) ) {
+      lastAllEnvironments.push(
+        await this.environmentsRepository
+          .createQueryBuilder('environment')
+          .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
+          .select([
+            'environment.co2 as co2',
+            'environment.humidity as humidity',
+            'environment.temperature as temperature',
+            'environmentSection.environmentSection as section'
+          ])
+          .where('environmentSection.environmentSection = :section', { section: eSection })
+          .orderBy('environment.id', 'DESC')
+          .getRawOne()
+      )
+    }
+    return plainToClass(ResponseLastEnvironmentDto, lastAllEnvironments);
+  }
+
+    async getEnvironmentSection(sectionName: string): Promise<EnvironmentSection> {
     return await this.environmentSectionRepository.findOne({
       environmentSection: sectionName,
     });
@@ -41,9 +72,9 @@ export class EnvironmentsService {
     });
   }
 
-  async readLastEnvironment( section: string ): Promise<ResponseLastEnvironmentDto> {
+  async readLastEnvironment( eSection: string ): Promise<ResponseLastEnvironmentDto> {
     const [ environmentSection, lastEnvironment ]: [ EnvironmentSection, LastEnvironment ] = await Promise.all([
-      await this.getEnvironmentSection( section ),
+      await this.getEnvironmentSection( eSection ),
       await this.environmentsRepository
         .createQueryBuilder('environment')
         .leftJoinAndSelect('environment.environmentSection', 'environmentSection')
@@ -52,7 +83,7 @@ export class EnvironmentsService {
           'environment.humidity',
           'environment.temperature',
         ])
-        .where('environmentSection.environmentSection = :section', { section })
+        .where('environmentSection.environmentSection = :section', { section: eSection })
         .orderBy('environment.id', 'DESC')
         .getOne()
     ])

@@ -37,6 +37,14 @@ export class EnvironmentsController {
     return this.environmentsService.readTodayEnvironmentHistory( readTodayEnvironment );
   }
 
+  @Get('/read/lastAll/:machineSection')
+  @UseGuards(JwtAuthGuard)
+  readLastAllEnvironments(
+    @Param('machineSection') mSection: string,
+  ) {
+    return this.environmentsService.readLastAllEnvironments(mSection);
+  }
+
   @MessagePattern('env/section/+')
   getMqttEnvironment(@Payload() data: JSON, @Ctx() context: MqttContext) {
     const createEnvDto: CreateEnvDto = {

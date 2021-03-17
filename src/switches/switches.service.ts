@@ -102,11 +102,6 @@ export class SwitchesService {
           )
           .orderBy('switch.id', "DESC")
           .limit(1)
-          /*.where(
-            `switch.id IN (SELECT max(id) FROM iot.switch
-                                WHERE machineSection = \"${section}\"
-                                GROUP BY machine)`,
-          )*/
           .getRawOne()
       );
     }
