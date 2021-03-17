@@ -8,7 +8,7 @@ import {
   Payload,
 } from '@nestjs/microservices';
 import { CreateEnvDto } from '../dto/create-env.dto';
-import {getEnvironmentSectionInTopic, getSectionInTopic} from '../utils/utils';
+import {getEnvironmentSectionInTopic} from '../utils/utils';
 import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
 import {JwtAuthGuard} from "../authentication/jwt-auth.guard";
 

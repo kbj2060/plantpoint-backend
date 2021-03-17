@@ -11,9 +11,7 @@ import { Socket, Server } from 'socket.io';
 import {ControlSwitchEvent, WebSocketEvent} from "../interfaces/events.interface";
 import {WebSocketPort} from "../interfaces/constants";
 
-@WebSocketGateway(WebSocketPort,{
-  path:'/ws',
-})
+@WebSocketGateway(WebSocketPort)
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('SwitchesGateWay');
