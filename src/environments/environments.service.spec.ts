@@ -68,7 +68,7 @@ describe('EnvironmentsService', () => {
   describe('Today Environment Read Validation Test', () => {
     it('정상적인 Today Environment 데이터 읽기', async () => {
       const readTodayEnvironmentDto: ReadTodayEnvironmentDto = {
-        environmentSection: 's1-1',
+        section: 'd1',
         environmentName: 'co2',
       };
       await service.readTodayEnvironmentHistory(readTodayEnvironmentDto);
@@ -76,7 +76,7 @@ describe('EnvironmentsService', () => {
 
     it('존재하지 않는 Environment Section 에 접근하는 경우, NotFoundException 발생', async () => {
       const readTodayEnvironmentDto: ReadTodayEnvironmentDto = {
-        environmentSection: faker.lorem.word(),
+        section: faker.lorem.word(),
         environmentName: 'co2',
       };
       try {
