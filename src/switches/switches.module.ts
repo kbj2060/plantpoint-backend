@@ -6,7 +6,6 @@ import { SwitchesController } from './switches.controller';
 import { SwitchesService } from './switches.service';
 import { MachineSection } from '../entities/machine_section.entity';
 import {Machine} from "../entities/machine.entity";
-import { Server } from 'socket.io';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Switch, User, MachineSection, Machine])],

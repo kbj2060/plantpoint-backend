@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Automation } from '../entities/automation.entity';
@@ -9,7 +9,6 @@ import { MachineSection } from '../entities/machine_section.entity';
 import { plainToClass } from 'class-transformer';
 import {
   AutomationCreate,
-  LastAutomation,
 } from '../interfaces/automations.interface';
 import { ResponseLastAutomationDto } from '../dto/response-last-automation.dto';
 import {
@@ -17,6 +16,8 @@ import {
   checkMachineSection,
   checkUser,
 } from '../utils/error-handler';
+import {WINSTON_MODULE_PROVIDER} from "nest-winston";
+import {Logger} from "winston";
 
 @Injectable()
 export class AutomationsService {
@@ -29,7 +30,8 @@ export class AutomationsService {
     private usersRepository: Repository<User>,
     @InjectRepository(MachineSection)
     private machineSectionRepository: Repository<MachineSection>,
-  ) {}
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) { }
 
   async readAutomation(section: string): Promise<ResponseLastAutomationDto> {
     const [ machineSection, automations ] = await Promise.all([
@@ -73,6 +75,7 @@ export class AutomationsService {
     ])
     checkMachineSection(machineSection);
 
+    this.logger.info(`${section} Section Automation Data Loaded`);
     return plainToClass(ResponseLastAutomationDto, {
       lastAutomations: automations,
     });
@@ -120,6 +123,7 @@ export class AutomationsService {
       } as AutomationCreate);
     }
 
+    this.logger.info(`${controlledBy} Changed Automation Data`);
     await this.automationsRepository.save(plainToClass(Automation, automations));
   }
 }

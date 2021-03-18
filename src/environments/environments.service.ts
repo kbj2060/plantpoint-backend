@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { Environment } from '../entities/environment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,8 +17,8 @@ import { DateFormat } from '../interfaces/constants';
 import { EnvironmentSection } from '../entities/environment_section.entity';
 import { checkEnvironmentSection } from '../utils/error-handler';
 import { ReadTodayEnvironmentDto } from '../dto/read-today-environment.dto';
-import {Machine} from "../entities/machine.entity";
-import {MachineSection} from "../entities/machine_section.entity";
+import {WINSTON_MODULE_PROVIDER} from "nest-winston";
+import {Logger} from "winston";
 
 const flattenSections = (sections) => {
   return sections.map((m)=>Object.values(m)[0])
@@ -31,6 +31,7 @@ export class EnvironmentsService {
     private environmentsRepository: Repository<Environment>,
     @InjectRepository(EnvironmentSection)
     private environmentSectionRepository: Repository<EnvironmentSection>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger
   ) {}
 
   async readLastAllEnvironments( mSection: string ) {
@@ -57,6 +58,7 @@ export class EnvironmentsService {
           .getRawOne()
       )
     }
+    this.logger.info(`${mSection} Last All Environments are Loaded`)
     return plainToClass(ResponseLastEnvironmentDto, lastAllEnvironments);
   }
 
@@ -91,6 +93,7 @@ export class EnvironmentsService {
 
     if (!lastEnvironment) { return new ResponseLastEnvironmentDto(); }
 
+    this.logger.info(`${eSection} Last Environments are Loaded`)
     return plainToClass(ResponseLastEnvironmentDto, lastEnvironment);
   }
 
@@ -121,6 +124,7 @@ export class EnvironmentsService {
 
     checkEnvironmentSection(environmentSection);
 
+    this.logger.info(`${readTodayEnvironment.environmentName} Today Environments are Loaded`)
     return plainToClass(ResponseEnvironmentHistoryDto, {
       histories: environmentsHistory,
     });
@@ -133,6 +137,7 @@ export class EnvironmentsService {
 
     checkEnvironmentSection(section);
 
+    this.logger.info(`${environmentCreateDto.environmentSection} Environments are Created`)
     await this.environmentsRepository.save(
       plainToClass(Environment, {
         ...environmentCreateDto,

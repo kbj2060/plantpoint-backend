@@ -1,17 +1,15 @@
-import {Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Switch } from '../entities/switch.entity';
 import { Repository } from 'typeorm';
 import { CreateSwitchDto } from '../dto/create-switch.dto';
 import { plainToClass } from 'class-transformer';
-import { ResponseLastSwitchDto } from '../dto/response-last-switch.dto';
 import { ResponseHistorySwitchDto } from '../dto/response-history-switch.dto';
 import { User } from '../entities/user.entity';
 import { MachineSection } from '../entities/machine_section.entity';
-import { MachineStatus, SwitchHistoryNumber } from '../interfaces/constants';
+import { SwitchHistoryNumber } from '../interfaces/constants';
 import {
   PowerOnSwitch,
-  PowerOnMachines,
   SwitchHistory,
   SwitchCreate,
 } from '../interfaces/switches.interface';
@@ -22,22 +20,9 @@ import {
 } from '../utils/error-handler';
 import { MqttService } from 'nest-mqtt';
 import {Machine} from "../entities/machine.entity";
+import {WINSTON_MODULE_PROVIDER} from "nest-winston";
+import {Logger} from "winston";
 
-const extractOnMachines = (
-  switches: PowerOnSwitch[],
-  section: string,
-): PowerOnMachines => {
-  const onMachines: PowerOnMachines = <PowerOnMachines>{
-    machineSection: section,
-    machines: [],
-  };
-  switches.forEach((_switch: PowerOnSwitch) => {
-    if ( onMachines.hasOwnProperty('machineSection') && _switch.status === MachineStatus.ON ) {
-      onMachines.machines.push(_switch.machine);
-    }
-  });
-  return onMachines;
-};
 
 const flattenMachines = (machines: Machine[]) => {
   return machines.map((m)=>Object.values(m)[0])
@@ -56,7 +41,8 @@ export class SwitchesService {
     private machineRepository: Repository<Machine>,
     @Inject(MqttService)
     private readonly mqttService: MqttService,
-  ) {}
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) { }
 
   async getUser(username: string): Promise<User> {
     return await this.usersRepository.findOne({
@@ -107,7 +93,7 @@ export class SwitchesService {
     }
 
     checkCurrentSwitches(lastSwitches);
-
+    this.logger.info(`${section} Section Last Switches Data Loaded`);
     return lastSwitches;
   }
 
@@ -126,6 +112,8 @@ export class SwitchesService {
       .orderBy('switch.id', 'DESC')
       .limit(SwitchHistoryNumber.LIMIT)
       .getRawMany();
+
+    this.logger.info(`${section} Section Switches History Data are Loaded`);
     return plainToClass(ResponseHistorySwitchDto, {
       switchHistory: switchHistory,
     });
@@ -145,6 +133,7 @@ export class SwitchesService {
       controlledBy: user,
     };
 
+    this.logger.info(`${dto.machineSection} Section ${dto.machine} is Changed`);
     await this.mqttService.publish(`switch/${dto.machineSection}/${dto.machine}`, dto.status.toString());
     await this.switchesRepository.save(plainToClass(Switch, _switch));
   }

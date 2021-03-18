@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Schedule } from '../entities/schedule.entity';
@@ -16,6 +16,8 @@ import {
 } from '../interfaces/schedules.interface';
 import { ResponseSchedulesDto } from '../dto/response-schedules.dto';
 import { checkSchedule, checkUser } from '../utils/error-handler';
+import {WINSTON_MODULE_PROVIDER} from "nest-winston";
+import {Logger} from "winston";
 
 const checkDateFormat = (date: string, dateFormat: string): boolean => {
   return moment(date, dateFormat, true).isValid();
@@ -38,6 +40,7 @@ export class SchedulesService {
     private schedulesRepository: Repository<Schedule>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger
   ) {}
 
   async findScheduleById(id: number): Promise<Schedule> {
@@ -65,16 +68,20 @@ export class SchedulesService {
       .where('schedule.date LIKE :date', { date: `%${formattedDate}%` })
       .orderBy('schedule.date', 'DESC')
       .getMany();
+
+    this.logger.info(`${scheduleReadDto.date} Schedule Data Loaded`);
     return plainToClass(ResponseSchedulesDto, {
       SelectedDateSchedules: schedules,
     });
   }
 
   async deleteSchedule(scheduleDeleteDto: DeleteScheduleDto): Promise<void> {
+    this.logger.info(`Schedules Data Deleted`);
     await this.schedulesRepository.delete(scheduleDeleteDto.ids);
   }
 
   async updateSchedule(scheduleUpdateDto: UpdateScheduleDto): Promise<void> {
+    this.logger.info(`${scheduleUpdateDto.id} Schedule Data Updated`);
     const findingSchedule: Schedule = await this.findScheduleById(
       scheduleUpdateDto.id,
     );
@@ -97,6 +104,8 @@ export class SchedulesService {
       ...scheduleCreateDto,
       createdBy: user,
     };
+
+    this.logger.info(`${scheduleCreateDto.title} Schedule Data Created`);
     await this.schedulesRepository.save(plainToClass(Schedule, schedule));
   }
 }

@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import {Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { ErrorMessages } from '../interfaces/constants';
 import { User } from '../entities/user.entity';
 import { MachineSection } from '../entities/machine_section.entity';
@@ -6,6 +6,8 @@ import { Machine } from '../entities/machine.entity';
 import { EnvironmentSection } from '../entities/environment_section.entity';
 import { Schedule } from '../entities/schedule.entity';
 import { PowerOnSwitch } from '../interfaces/switches.interface';
+
+
 
 export function checkUser(user: User) {
   if (!user) {

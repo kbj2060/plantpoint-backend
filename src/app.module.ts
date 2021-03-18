@@ -16,9 +16,27 @@ import { EventsModule } from './events/events.module';
 import { MachinesModule } from './machines/machines.module';
 import {MqttModule} from "nest-mqtt";
 import { SectionsModule } from './sections/sections.module';
+import * as winston from 'winston';
+import { WinstonModule } from 'nest-winston';
+import {format} from "winston";
 
 @Module({
   imports: [
+    WinstonModule.forRoot({
+      format: format.combine(
+        format.prettyPrint(),
+        format.timestamp({format: 'YYYY-MM-DD hh-mm-ss'}),
+        format.printf(msg => {
+          return `${msg.timestamp} | [${msg.level}] | ${msg.message}`;
+        },
+        )),
+      transports: [
+        new winston.transports.File({ filename: '.logs/error.log', level: 'error', zippedArchive: true, }),
+        new winston.transports.File({ filename: '.logs/info.log', level: 'info', zippedArchive: true, }),
+        new(winston.transports.Console)({ })
+      ],
+      // other options
+    }),
     MqttModule.forRoot({
 
     }),
@@ -60,6 +78,5 @@ import { SectionsModule } from './sections/sections.module';
     SectionsModule,
   ],
   controllers: [AppController],
-  providers: [ ],
 })
 export class AppModule {}
