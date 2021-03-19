@@ -1,0 +1,19 @@
+@startuml
+title Http API Example
+actor llewyn
+boundary Dto
+entity Entitiy
+database Mysql
+
+autonumber
+llewyn -> React: Button Click!
+participant Dto
+React -> NestJS: Request using Data Transfer Object
+participant Entitiy
+NestJS -> Mysql : Request Data using Entitiy
+Mysql --> NestJS : Response Data using Entity
+participant Mysql
+NestJS --> React: Response using Data Transfer Object
+React --> llewyn: Pop Up!
+
+@enduml

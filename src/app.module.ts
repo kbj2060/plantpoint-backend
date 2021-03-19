@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './authentication/constants';
+import { jwtConstants } from './authentication/secret';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { AutomationsModule } from './automations/automations.module';
 import { CurrentsModule } from './currents/currents.module';
@@ -62,8 +62,6 @@ import {format} from "winston";
       database: 'iot',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      //cache: false,
-      //keepConnectionAlive: true,
     }),
     AutomationsModule,
     CurrentsModule,

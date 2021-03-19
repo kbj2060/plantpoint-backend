@@ -1,0 +1,15 @@
+@startuml
+title Sending Websockets
+actor llewyn
+actor others
+boundary Dto
+
+autonumber
+llewyn -> React : Button Click!
+participant Dto
+React -> NestJS: Send Websockets and data using Dto
+NestJS -> NestJS : Listening Subscribing Websockets Events
+NestJS -> React : Emit Websockets and data using Dto
+React -> llewyn : Pop up!
+React -> others : Pop up!
+@enduml

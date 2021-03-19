@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
-import { jwtConstants } from './constants';
+import { jwtConstants } from './secret';
 import { AuthenticationModule } from './authentication.module';
 import { UsersModule } from '../users/users.module';
 import { AuthenticationService } from './authentication.service';

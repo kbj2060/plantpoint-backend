@@ -1,0 +1,16 @@
+@startuml
+title Sending Data Through Mqtt
+actor sensors #red
+boundary Dto
+entity Entitiy
+database Mysql
+
+autonumber
+participant Dto
+NestJS -> NestJS : Listening Subscribing Mqtt Topic
+sensors -> NestJS: Mqtt using Data Transfer Object
+participant Entitiy
+NestJS -> Mysql : Save Data using Entitiy
+participant Mysql
+
+@enduml
