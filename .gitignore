@@ -1,5 +1,4 @@
 node_modules
 dist
-*/secret.ts
+src/authentication/secret.ts
 .logs/
-*/secret.ts
