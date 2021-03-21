@@ -6,6 +6,7 @@ import { Machine } from '../entities/machine.entity';
 import { EnvironmentSection } from '../entities/environment_section.entity';
 import { Schedule } from '../entities/schedule.entity';
 import { PowerOnSwitch } from '../interfaces/switches.interface';
+import {isArray} from "class-validator";
 
 
 
@@ -28,9 +29,9 @@ export function checkMachineSection(machineSection: MachineSection) {
 }
 
 export function checkEnvironmentSection(
-  environmentSection: EnvironmentSection,
+  environmentSection: EnvironmentSection | EnvironmentSection[],
 ) {
-  if (!environmentSection) {
+  if (!environmentSection || ( environmentSection as EnvironmentSection[] ).length === 0 ) {
     throw new NotFoundException(ErrorMessages.NOT_FOUND_ENVIRONMENTSECTION);
   }
 }

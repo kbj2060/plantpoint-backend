@@ -35,11 +35,13 @@ export class EnvironmentsService {
   ) {}
 
   async readLastAllEnvironments( mSection: string ) {
-    const eSections = await this.environmentSectionRepository
+    const eSections: EnvironmentSection[] = await this.environmentSectionRepository
       .createQueryBuilder('environmentSection')
       .select('environmentSection.environmentSection')
       .where(`section = :section`, {section: mSection})
       .getMany();
+
+    checkEnvironmentSection(eSections);
 
     const lastAllEnvironments = []
     for (const eSection of flattenSections(eSections) ) {
