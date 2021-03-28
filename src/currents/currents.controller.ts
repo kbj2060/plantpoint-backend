@@ -11,6 +11,7 @@ import { plainToClass } from 'class-transformer';
 import { getMachineInTopic, getSectionInTopic } from '../utils/utils';
 import { ReadCurrentDto } from '../dto/read-current';
 import { ResponseLastCurrentDto } from '../dto/response-last-current.dto';
+import { ReadAllCurrentDto } from '../dto/read-all-current';
 
 @Controller('currents')
 export class CurrentsController {
@@ -26,6 +27,14 @@ export class CurrentsController {
       machineSection: machineSection,
     }
     return this.currentsService.readCurrent(currentReadDto);
+  }
+
+  @Get('/read/:machineSection')
+  readAllCurrent(
+    @Param('machineSection') machineSection: string,
+  ) {
+    const readAllCurrentDto: ReadAllCurrentDto = { machineSection: machineSection };
+    return this.currentsService.readAllCurrent(readAllCurrentDto);
   }
 
   @MessagePattern('current/+/+')

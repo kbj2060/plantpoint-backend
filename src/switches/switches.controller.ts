@@ -31,17 +31,9 @@ export class SwitchesController {
     return this.switchesService.readSwitchHistory(section);
   }
 
-  /* TODO:
-      * Automation 스크립트에서도 mqtt로 publish 하지말고 http /create 를 통해 db 저장과 mqtt를 한 번에 동작
-  */
   @Post('/create')
   @UseGuards(JwtAuthGuard)
   async createSwitch (@Body() switchCreateDto: CreateSwitchDto): Promise<void> {
     return this.switchesService.createSwitch(switchCreateDto);
-  }
-
-  @MessagePattern('switch/+/+')
-  getMqttSwitch(@Payload() data: number, @Ctx() context: MqttContext) {
-    //TODO: socket.io 통신 컨트롤 추가하고 테스트에도 추가할 것.
   }
 }

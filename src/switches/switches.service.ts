@@ -22,11 +22,7 @@ import { MqttService } from 'nest-mqtt';
 import {Machine} from "../entities/machine.entity";
 import {WINSTON_MODULE_PROVIDER} from "nest-winston";
 import {Logger} from "winston";
-
-
-const flattenMachines = (machines: Machine[]) => {
-  return machines.map((m)=>Object.values(m)[0])
-}
+import { flattenMachines } from '../utils/utils';
 
 @Injectable()
 export class SwitchesService {
@@ -71,25 +67,30 @@ export class SwitchesService {
 
     const lastSwitches = []
     for (const machine of flattenMachines(machines) ) {
-      lastSwitches.push(
-        await this.switchesRepository
-          .createQueryBuilder('switch')
-          .leftJoinAndSelect('switch.machineSection', 'machineSection')
-          //.leftJoinAndSelect('switch.controlledBy', 'controlledBy')
-          .select([
-            'machineSection.machineSection AS machineSection',
-            'switch.machine AS machine',
-            'switch.status AS status',
-          ])
-          .where(
-            `switch.machine = :machine AND machineSection = :section`, {
-              machine: machine, section: section
-            }
-          )
-          .orderBy('switch.id', "DESC")
-          .limit(1)
-          .getRawOne()
-      );
+      const _switch: PowerOnSwitch = await this.switchesRepository
+        .createQueryBuilder('switch')
+        .leftJoinAndSelect('switch.machineSection', 'machineSection')
+        .select([
+          'machineSection.machineSection AS machineSection',
+          'switch.machine AS machine',
+          'switch.status AS status',
+        ])
+        .where(
+          `switch.machine = :machine AND machineSection = :section`, {
+            machine: machine, section: section
+          }
+        )
+        .orderBy('switch.id', "DESC")
+        .limit(1)
+        .getRawOne()
+
+      !_switch 
+        ? lastSwitches.push({
+          machineSection: machineSection,
+          machine: machine,
+          status: 0
+        }) 
+        : lastSwitches.push(_switch);
     }
 
     checkCurrentSwitches(lastSwitches);

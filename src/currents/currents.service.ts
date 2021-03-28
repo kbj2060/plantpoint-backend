@@ -10,6 +10,8 @@ import { plainToClass } from 'class-transformer';
 import { ResponseLastCurrentDto } from '../dto/response-last-current.dto';
 import { Machine } from '../entities/machine.entity';
 import { checkMachine, checkMachineSection } from '../utils/error-handler';
+import { flattenMachines } from '../utils/utils';
+import { ReadAllCurrentDto } from '../dto/read-all-current';
 
 @Injectable()
 export class CurrentsService {
@@ -60,6 +62,38 @@ export class CurrentsService {
     checkMachineSection(machineSection);
 
     return plainToClass(ResponseLastCurrentDto, current);
+  }
+
+  async readAllCurrent( allCurrentReadDto: ReadAllCurrentDto ) {
+    const machines: Machine[] = await this.machineRepository
+      .createQueryBuilder('machine')
+      .leftJoinAndSelect('machine.machineSection', 'machineSection')
+      .select('machine.machine')
+      .where(`machineSection = :section`, {section: allCurrentReadDto.machineSection})
+      .getMany();
+
+    const currents: ResponseLastCurrentDto[] = []
+    for (const machine of flattenMachines(machines)) {
+      currents.push(
+        await this.currentsRepository
+          .createQueryBuilder('current')
+          .leftJoinAndSelect('current.machineSection', 'machineSection')
+          .select([
+            'current.machine AS machine',
+            'machineSection.machineSection AS machineSection',
+            'current.current AS current',
+          ])
+          .where('machine = :machine', { machine: machine })
+          .andWhere('machineSection = :machineSection', {
+            machineSection: allCurrentReadDto.machineSection,
+          })
+          .orderBy('current.id', "DESC")
+          .limit(1)
+          .getRawOne()
+      );
+    }
+
+    return plainToClass(ResponseLastCurrentDto, currents);
   }
 
   async createCurrent(currentCreateDto: CreateCurrentDto): Promise<void> {
