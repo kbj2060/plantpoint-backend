@@ -67,7 +67,7 @@ export class SwitchesService {
 
     const lastSwitches = []
     for (const machine of flattenMachines(machines) ) {
-      const _switch: PowerOnSwitch = await this.switchesRepository
+      const machineStatus: PowerOnSwitch = await this.switchesRepository
         .createQueryBuilder('switch')
         .leftJoinAndSelect('switch.machineSection', 'machineSection')
         .select([
@@ -84,13 +84,7 @@ export class SwitchesService {
         .limit(1)
         .getRawOne()
 
-      !_switch 
-        ? lastSwitches.push({
-          machineSection: machineSection,
-          machine: machine,
-          status: 0
-        }) 
-        : lastSwitches.push(_switch);
+        lastSwitches.push(!machineStatus ? { machineSection: section, machine: machine, status: 0 } : machineStatus);
     }
 
     checkCurrentSwitches(lastSwitches);

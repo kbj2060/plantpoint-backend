@@ -74,8 +74,7 @@ export class CurrentsService {
 
     const currents: ResponseLastCurrentDto[] = []
     for (const machine of flattenMachines(machines)) {
-      currents.push(
-        await this.currentsRepository
+      const current = await this.currentsRepository
           .createQueryBuilder('current')
           .leftJoinAndSelect('current.machineSection', 'machineSection')
           .select([
@@ -90,8 +89,9 @@ export class CurrentsService {
           .orderBy('current.id', "DESC")
           .limit(1)
           .getRawOne()
-      );
-    }
+      
+      currents.push(!current ? { machineSection: allCurrentReadDto.machineSection, machine: machine, current: 0 } : current);
+      };
 
     return plainToClass(ResponseLastCurrentDto, currents);
   }

@@ -46,6 +46,35 @@ describe('SwitchesService', () => {
     });
   });
 
+  describe('Last Switches Read Validation Test', () => {
+    it('정상적인 Last Switches 데이터 읽기', async () => {
+      const section = 's1';
+      const switches = await service.readLastSwitches(section);
+      expect(switches).toBeInstanceOf(ResponseLastSwitchDto);
+    });
+
+    it('존재하지 않는 Machine Section 에 접근한 경우, NotFoundException 발생', async () => {
+      const fakeSection = faker.lorem.word();
+      try {
+        await service.readLastSwitches(fakeSection);
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+        expect(e.message).toBe(ErrorMessages.NOT_FOUND_MACHINESECTION);
+      }
+    });
+
+    // TODO : need null exception & think aboud mock database
+    it('Switch 데이터가 없는 경우, Null이 아닌 Switch의 기본값을 보냄', async () => {
+      const section = 's1';
+      // try {
+      //   await service.readLastSwitches(section);
+      // } catch (e) {
+      //   expect(e).toBeInstanceOf(NotFoundException);
+      //   expect(e.message).toBe(ErrorMessages.NOT_FOUND_MACHINESECTION);
+      // }
+    });
+  });
+  
   describe('Current Switches Read Validation Test', () => {
     it('정상적인 Switches 데이터 읽기', async () => {
       const section = 's1';
