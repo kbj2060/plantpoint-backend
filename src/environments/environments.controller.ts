@@ -47,12 +47,16 @@ export class EnvironmentsController {
 
   @MessagePattern('env/section/+')
   getMqttEnvironment(@Payload() data: JSON, @Ctx() context: MqttContext) {
+	let filtered = JSON.parse(data.toString().replace(/\bNaN\b/g,"null"));
+	  Object.keys(filtered).forEach((key) => {
+	  	filtered[key] =  !data[key] ? 0 : data[key]
+	  })
     const createEnvDto: CreateEnvDto = {
-      environmentSection: getEnvironmentSectionInTopic(context.getTopic()),
-      co2: data['co2'],
-      temperature: data['temperature'],
-      humidity: data['humidity'],
-    };
+	environmentSection: getEnvironmentSectionInTopic(context.getTopic()),
+	co2: filtered['co2'],
+	temperature: filtered['temperature'],
+	humidity: filtered['humidity'],
+	};
     return this.environmentsService.createCurrentEnvironment(createEnvDto);
   }
 }
